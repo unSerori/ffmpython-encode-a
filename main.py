@@ -44,8 +44,8 @@ def encode_file(o_dir: str, i_filename: str, ext: str) -> bool | str:
     """
 
     # 出力ファイル名
-    o_filename = o_dir + os.path.sep + os.path.splitext(os.path.basename(i_filename))[0] + "." + ext
-    print(o_filename)
+    o_filename = os.path.join(o_dir, os.path.splitext(os.path.basename(i_filename))[0] + "." + ext)
+    print("o_filename: " + o_filename)
 
     try:
         if os.path.exists(o_filename):
@@ -84,20 +84,62 @@ def main():
     os.makedirs(adjusted_i_dir, exist_ok=True)
     os.makedirs(adjusted_o_dir, exist_ok=True)
 
-    # 1ファイルずつ処理
-    for filename in os.listdir(adjusted_i_dir): # 入力ディレクトリ内
-        i_filepath = adjusted_i_dir + os.path.sep + filename
-
-        # ファイルでないならコンテ
-        if not os.path.isfile(i_filepath):
-            print(f"{filename} is not file.")
-            continue
+    def recursive_process_files(i_dir: str, callback: callable):
+        """ディレクトリ内を一括処理
         
-        # エンコード
-        ef = encode_file(adjusted_o_dir, i_filepath, conv_ext)
-        if not ef:
-            print(f"encode error: {ef}")
-            return
+        ディレクトリ内のファイルを一括処理、その際にディレクトリがあったらその中を再帰する
+
+        Parameters
+        ----------
+        o_dir: str
+            作業を適用するディレクトリ
+        """
+        print(adjusted_i_dir)
+        print("+++")
+        print("i_dir: " + i_dir)
+        # 1ファイルずつ処理
+        for filename in os.listdir(i_dir): # 入力ディレクトリ内
+            # i/oファイル名作成
+            i_filepath = os.path.join(i_dir, filename)
+            print("i_filepath: " + i_filepath)
+
+            print("o_filename")
+
+            # ファイルなら処理、
+            if os.path.isfile(i_filepath):
+                # 出力先パスを作成
+
+                i_dir_split = os.path.normpath(i_dir).split(os.sep, 1) # 1層目のディレクトリとそれをのぞいたパスが返る
+                o_path = os.path.join(o_dir, i_dir_split[1]) if len(i_dir_split) > 1 else o_dir # 二層以上に分かれているなら、、、一層目をのぞいて出力ディレクトリを結合 el 一層目だけ返す
+                print("==+")
+                print("o_path: " + o_path)
+                print("i_filepath: " + i_filepath)
+                print("==-")
+                ef = callback(o_path, i_filepath, conv_ext)
+                if not ef:
+                    print(f"encode error: {ef}")
+                    return
+            # ディレクトリなら再起
+            else:
+                print(f"{filename} is not file.")
+                # TODO: 出力側に同ディレクトリを作成
+                print("dir: " + o_dir)
+                print("dir_i: " + i_dir)
+                print("dir_i_a: " + adjusted_i_dir)
+                print("filename: " + filename)
+                i_dir_split = os.path.normpath(i_filepath).split(os.sep, 1) # 1層目のディレクトリとそれをのぞいたパスが返る
+                o_path = os.path.join(o_dir, i_dir_split[1]) if len(i_dir_split) > 1 else o_dir # 二層以上に分かれているなら、、、一層目をのぞいて出力ディレクトリを結合 el 一層目だけ返す
+                print("opath:", o_path)
+                os.makedirs(o_path, exist_ok=True) # 再帰作成、既に存在するならpass
+
+                # 再起
+                recursive_process_files(i_filepath, callback)
+    
+    # 対象ディレクトリのルートで再帰を開始
+    recursive_process_files(adjusted_i_dir, encode_file)
+
+
+
 
 if __name__ == "__main__":
     main()
