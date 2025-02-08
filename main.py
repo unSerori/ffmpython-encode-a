@@ -12,14 +12,25 @@ print()
 # スクリプトファイルの場所に移動
 os.chdir(os.path.dirname(sys.argv[0]))  # Courtesy of mattuu0
 
-# YAMLからの設定値読み込み
-def load_config():
+def load_config(conf_path: str) -> map:
+    """YAMLからの設定値読み込み
+    
+    指定されたYAMLファイルに記載された設定値をmapとして読み込む
+
+    Parameters
+    ----------
+    conf_path: str
+        読み込むファイルのパス
+    """
+
+    adjusted_conf_path = os.path.normpath(conf_path)
+
     # なければデフォのファイルを作成
-    if not os.path.exists("./config.yml"):
-        generate_default_config()
+    if not os.path.exists(adjusted_conf_path):
+        generate_default_config(adjusted_conf_path)
 
     # 読みこみ
-    with open("config.yml") as conf_file:
+    with open(adjusted_conf_path) as conf_file:
         config = yaml.safe_load(conf_file)
     return config
 
@@ -63,7 +74,7 @@ def encode_file(o_dir: str, i_filename: str, ext: str) -> bool | str:
 # main
 def main():
     # 必要な設定値を読み込む
-    config = load_config()
+    config = load_config("config.yml")
     conv_ext = config['convert']['a']['o_format_ext'] # ext
 
     # 入出力ディレクトリ

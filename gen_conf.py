@@ -5,7 +5,7 @@ import yaml
 default_config = {
     'convert':{
         'a': {
-            'o_format_ext': "mp3"
+            'o_format_ext': "m4a"
         }
     }
 }

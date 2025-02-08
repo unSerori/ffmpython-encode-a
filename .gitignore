@@ -62,6 +62,7 @@ encoded_files
 # upload directory
 
 ## Others items
+config.yml
 
 # empty directory
 !.gitignore
